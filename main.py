@@ -8,18 +8,19 @@ pygame.mixer.init()
 # Load sound files
 pygame.mixer.music.load('output.mid')
 
+
 WIDTH, HEIGHT = 1000, 800
+display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Three Body Problem Simulation")
 blueBlackLock = False
 greenBlackLock = False
 redBlackLock = False
+active = True
 
 
 def play_sound():
     threading.Thread(target=pygame.mixer.music.play()).start()
-
-
 
 class Body:
     def __init__(self, x, y, vx, vy, mass, color, size):
@@ -73,12 +74,38 @@ body4 = Body(WIDTH // 2, HEIGHT // 2 + 60 * math.sqrt(3) + 31.1, 0.05, 0, 0.03, 
 bodies = [body1, body2, body3, body4]
 
 clock = pygame.time.Clock()
+font = pygame.font.Font('freesansbold.ttf', 32)
+text = font.render('Press R to continue.', True, (0, 255, 0), (0, 0, 128))
+textRect = text.get_rect()
+textRect.center = (WIDTH//2, HEIGHT // 2)
+textShowPause = font.render('Press P to pause', True, (0, 255, 0), (0, 0, 128))
+textRectShowPause = textShowPause.get_rect()
+textRectShowPause.topright = (WIDTH - 10, 10)
+
 dt = 10
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                print("Timer paused. Press 'p' to resume.")
+                active = False
+            elif event.key == pygame.K_r:
+                print("Timer resumed.")
+                active = True
+
+    # active is false
+    if not active:
+        # show paused message on the screen
+        display_surface.blit(text, textRect)
+        pygame.display.update()
+
+        continue
+    else:
+        pass
+
     for body in bodies:
         body.update_velocity(bodies, dt)
     for body in bodies:
@@ -114,7 +141,7 @@ while running:
 
     for body in bodies:
         body.draw()
-
+    display_surface.blit(textShowPause, textRectShowPause)
     pygame.display.update()
     clock.tick(60)
 
