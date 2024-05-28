@@ -123,12 +123,11 @@ while running:
     for body in bodies:
         body.update_position(dt)
 
-
     for i in range(5):
         blueBlackLock[i] = play_sound(body4, body1, 50*(i+1), blueBlackLock[i], (0, 0, 255), 50+i*5, part1)
     
     for i in range(5):
-        greenBlackLock[i] = play_sound(body4, body2, 50*(i+1), greenBlackLock[i], (0, 255, 0), 65+i*2, part2)
+        greenBlackLock[i] = play_sound(body4, body2, 50*(i+1), greenBlackLock[i], (0, 255, 0), 60+i*2, part2)
 
     for i in range(5):
         redBlackLock[i] = play_sound(body4, body3, 50*(i+1), redBlackLock[i], (255, 0, 0), 70+i*2, part3)
