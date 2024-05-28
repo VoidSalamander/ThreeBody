@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from music21 import *
 
 pygame.init()
@@ -8,9 +9,22 @@ pygame.mixer.init()
 # Load sound files
 pygame.mixer.music.load('output.mid')
 
+CMaj = ["C3", "E3", "G3"]
+GMaj = ["G3", "B3", "D3"]
+FMaj = ["F3", "A3", "C3"]
+
+
 part1 = stream.Part()
+instru1 = instrument.Guitar()
+part1.insert(0, instru1)
+
 part2 = stream.Part()
+instru2 = instrument.ElectricGuitar()
+part2.insert(0, instru2)
+
 part3 = stream.Part()
+instru3 = instrument.AcousticGuitar()
+part3.insert(0, instru3)
 
 WIDTH, HEIGHT = 1000, 800
 display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -81,12 +95,15 @@ textShowPause = font.render('Press P to pause', True, (0, 255, 0), (0, 0, 128))
 textRectShowPause = textShowPause.get_rect()
 textRectShowPause.topright = (WIDTH - 10, 10)
 
-def play_sound(small_body, large_body, distance, lock:bool, color, sound, part):
+rhythm_list = [0.25, 0.5, 1, 1.5, 2]
+
+def play_sound(small_body, large_body, distance, lock:bool, color, sound, part, chordMaj):
     if check_body_distance(large_body, small_body) < distance and lock:
-        n = note.Note(sound)
-        n.quarterLength = math.sqrt(small_body.vx ** 2 + small_body.vy ** 2)*15
-        n.volume.velocity = 127
-        part.append(n)
+        # n = note.Note(sound)
+        c = chord.Chord(chordMaj)
+        c.quarterLength = rhythm_list[random.randint(0, 4)]
+        c.volume.velocity = 127
+        part.append(c)
         large_body.color = (0, 0, 0)
         lock = False
     elif check_body_distance(large_body, small_body) >= distance:
@@ -125,13 +142,13 @@ while running:
 
 
     for i in range(5):
-        blueBlackLock[i] = play_sound(body4, body1, 50*(i+1), blueBlackLock[i], (0, 0, 255), 50+i*5, part1)
+        blueBlackLock[i] = play_sound(body4, body1, 50*(i+1), blueBlackLock[i], (0, 0, 255), 50+i*5, part1, CMaj)
     
     for i in range(5):
-        greenBlackLock[i] = play_sound(body4, body2, 50*(i+1), greenBlackLock[i], (0, 255, 0), 65+i*2, part2)
+        greenBlackLock[i] = play_sound(body4, body2, 50*(i+1), greenBlackLock[i], (0, 255, 0), 65+i*2, part2, GMaj)
 
     for i in range(5):
-        redBlackLock[i] = play_sound(body4, body3, 50*(i+1), redBlackLock[i], (255, 0, 0), 70+i*2, part3)
+        redBlackLock[i] = play_sound(body4, body3, 50*(i+1), redBlackLock[i], (255, 0, 0), 70+i*2, part3, FMaj)
 
     win.fill((200, 200, 200))
 
