@@ -1,6 +1,6 @@
 import pygame
 import math
-import threading
+from music21 import *
 
 pygame.init()
 pygame.mixer.init()
@@ -8,19 +8,18 @@ pygame.mixer.init()
 # Load sound files
 pygame.mixer.music.load('output.mid')
 
+part1 = stream.Part()
+part2 = stream.Part()
+part3 = stream.Part()
 
 WIDTH, HEIGHT = 1000, 800
 display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Three Body Problem Simulation")
-blueBlackLock = False
-greenBlackLock = False
-redBlackLock = False
+blueBlackLock = [False]*5
+greenBlackLock = [False]*5
+redBlackLock = [False]*5
 active = True
-
-
-def play_sound():
-    threading.Thread(target=pygame.mixer.music.play()).start()
 
 class Body:
     def __init__(self, x, y, vx, vy, mass, color, size):
@@ -66,9 +65,9 @@ def check_body_distance(b1: Body, b2: Body):
     return distance
 
 
-body1 = Body(WIDTH // 2 - 59.1, HEIGHT // 2, 0, 0, 1, (0, 0, 255), 10)
+body1 = Body(WIDTH // 2 - 60.8, HEIGHT // 2, 0, 0, 1, (0, 0, 255), 10)
 body2 = Body(WIDTH // 2 + 61.1, HEIGHT // 2, 0, 0, 1, (0, 255, 0), 10)
-body3 = Body(WIDTH // 2, HEIGHT // 2 + 61 * math.sqrt(3), 0, 0, 1, (255, 0, 0), 10)
+body3 = Body(WIDTH // 2, HEIGHT // 2 + 61.5 * math.sqrt(3), 0, 0, 1, (255, 0, 0), 10)
 body4 = Body(WIDTH // 2, HEIGHT // 2 + 60 * math.sqrt(3) + 31.1, 0.05, 0, 0.03, (100, 100, 100), 1)
 
 bodies = [body1, body2, body3, body4]
@@ -81,6 +80,19 @@ textRect.center = (WIDTH//2, HEIGHT // 2)
 textShowPause = font.render('Press P to pause', True, (0, 255, 0), (0, 0, 128))
 textRectShowPause = textShowPause.get_rect()
 textRectShowPause.topright = (WIDTH - 10, 10)
+
+def play_sound(small_body, large_body, distance, lock:bool, color, sound, part):
+    if check_body_distance(large_body, small_body) < distance and lock:
+        n = note.Note(sound)
+        n.quarterLength = math.sqrt(small_body.vx ** 2 + small_body.vy ** 2)*15
+        n.volume.velocity = 127
+        part.append(n)
+        large_body.color = (0, 0, 0)
+        lock = False
+    elif check_body_distance(large_body, small_body) >= distance:
+        large_body.color = color
+        lock = True
+    return lock
 
 dt = 10
 running = True
@@ -110,30 +122,16 @@ while running:
         body.update_velocity(bodies, dt)
     for body in bodies:
         body.update_position(dt)
-    if check_body_distance(body1, body4) < 20 and blueBlackLock: # Blue Black
-        print("Blue Black")
-        pygame.mixer.music.play()
-        body1.color = (0, 0, 0)
-        blueBlackLock = False
-    elif check_body_distance(body1, body4) >= 20:
-        body1.color = (0, 0, 255)
-        blueBlackLock = True
-    if check_body_distance(body2, body4) < 20 and greenBlackLock: # Green Black
-        print("Green Black")
-        pygame.mixer.music.play()
-        body2.color = (0, 0, 0)
-        greenBlackLock = False
-    elif check_body_distance(body2, body4) >= 20:
-        greenBlackLock = True
-        body2.color = (0, 255, 0)
-    if check_body_distance(body3, body4) < 20 and redBlackLock: # Red Black
-        print("Red Black")
-        pygame.mixer.music.play()
-        body3.color = (0, 0, 0)
-        redBlackLock = False
-    elif check_body_distance(body3, body4) >= 20:
-        redBlackLock = True
-        body3.color = (255, 0, 0)
+
+
+    for i in range(5):
+        blueBlackLock[i] = play_sound(body4, body1, 50*(i+1), blueBlackLock[i], (0, 0, 255), 50+i*5, part1)
+    
+    for i in range(5):
+        greenBlackLock[i] = play_sound(body4, body2, 50*(i+1), greenBlackLock[i], (0, 255, 0), 65+i*2, part2)
+
+    for i in range(5):
+        redBlackLock[i] = play_sound(body4, body3, 50*(i+1), redBlackLock[i], (255, 0, 0), 70+i*2, part3)
 
     win.fill((200, 200, 200))
 
@@ -146,3 +144,10 @@ while running:
     clock.tick(60)
 
 pygame.quit()
+
+score = stream.Score()
+score.append(part1)
+score.append(part2)
+score.append(part3)
+
+score.show('midi')
